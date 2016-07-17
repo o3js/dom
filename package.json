@@ -1,6 +1,6 @@
 {
   "name": "o3js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,12 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gsilk/o3js.git"
+    "url": "git+https://github.com/o3js/core.git"
   },
   "author": "Gabriel Silk <gabesilk@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/gsilk/o3js/issues"
+    "url": "https://github.com/o3js/core/issues"
   },
-  "homepage": "https://github.com/gsilk/o3js#readme"
+  "homepage": "https://github.com/o3js/core#readme",
+  "devDependencies": {
+    "jsdom": "^9.4.1"
+  }
 }
