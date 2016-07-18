@@ -34,12 +34,27 @@ module.exports = [
   ],
 
   ['Basic DOM manipulation',
-   ['An empty node', (el, document) => {
-     el.appendChild(dom([':span'], document));
-     assert(el.children[0].tagName === 'SPAN');
+   ['An empty node', (document) => {
+     assert(dom([':span'], document).tagName === 'SPAN');
    }],
-   ['A node with a string', (el, document) => {
-     el.appendChild(dom([':span', 'hello'], document));
-     assert(el.children[0].textContent === 'hello');
+   ['A node with a string', (document) => {
+     assert(dom([':span', 'hello'], document).textContent === 'hello');
    }],
+  ],
+
+  ['Attributes',
+
+   ['"class"',
+    ['An empty string', (document) => {
+      assert(
+        dom([':span', { class: '' }], document)
+          .className === '');
+    }],
+    ['A non-empty string', (document) => {
+      assert(
+        dom([':span', { class: 'myclass' }], document)
+          .className === 'myclass');
+    }],
+   ],
+
   ]];

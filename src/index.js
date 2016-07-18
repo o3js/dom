@@ -16,8 +16,8 @@ const getTagName = (x) => tagString2Name(_.head(x));
 const hasAttributes = (x) => x.length > 1
       && isAttributes(x[1]);
 
-// const getAttributes = (x) => (hasAttributes(x)
-//                               && x[1]) || undefined;
+const getAttributes = (x) => (hasAttributes(x)
+                              && x[1]) || undefined;
 
 const getChildren = (x) => (hasAttributes(x)
                             ? _.tail(_.tail(x))
@@ -27,17 +27,31 @@ let isNode = null;
 
 const isElement = (x) => _.isArray(x)
       && isTagString(_.head(x))
-      && _.every(_.tail(x), isNode);
+      && _.every(getChildren(x), isNode);
 
 isNode = (x, i) => isTextNode(x)
   || (isAttributes(x) && i === 1)
   || isElement(x);
 
+const attrs2DOMMapping = {
+  class: (el, val) => { el.className = val; },
+};
+
+function bindAttrs(el, attrs) {
+  _.each(attrs, (val, key) => {
+    if (!attrs2DOMMapping[key]) {
+      throw new Error('Unsupported attribute: ' + key + ', with value: ' + val);
+    }
+    attrs2DOMMapping[key](el, val);
+  });
+}
+
 function render(x, document) {
   if (isTextNode(x)) return document.createTextNode(x);
   if (isElement(x)) {
     const el = document.createElement(getTagName(x));
-    // const attrs = getAttributes(x);
+    const attrs = getAttributes(x);
+    bindAttrs(el, attrs);
     const children = getChildren(x);
     _.each(children, (c) => el.appendChild(render(c, document)));
     return el;
@@ -46,7 +60,7 @@ function render(x, document) {
 }
 
 function dom(x, document) {
-  assert(isNode(x));
+  assert(isNode(x), 'Invalid O3 structure: ' + JSON.stringify(x));
   return render(x, document);
 }
 

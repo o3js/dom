@@ -3,6 +3,7 @@
 {
   "extends": "airbnb",
   "rules": {
-    "prefer-template": "off"
+    "prefer-template": "off",
+    "no-param-reassign": "off"
   }
 }
