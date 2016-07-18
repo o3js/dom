@@ -19,19 +19,27 @@ module.exports = [
    ['Starting with a hyphen', (document) => {
      assert.throws(() => dom([':-invalid'], document));
    }],
+   ['Just a colon', (document) => {
+     assert.throws(() => dom([':'], document));
+   }],
+   ['Empty string', (document) => {
+     assert.throws(() => dom([''], document));
+   }],
+   ['Undefined', (document) => {
+     assert.throws(() => dom([], document));
+   }],
+   ['Null', (document) => {
+     assert.throws(() => dom([null], document));
+   }],
   ],
 
   ['Basic DOM manipulation',
-
    ['An empty node', (el, document) => {
      el.appendChild(dom([':span'], document));
      assert(el.children[0].tagName === 'SPAN');
    }],
-
-
    ['A node with a string', (el, document) => {
      el.appendChild(dom([':span', 'hello'], document));
      assert(el.children[0].textContent === 'hello');
    }],
-
   ]];
