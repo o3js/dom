@@ -4,6 +4,7 @@
   "extends": "airbnb",
   "rules": {
     "prefer-template": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": "off",
+    "max-len": ["error", 80]
   }
 }
