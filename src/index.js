@@ -7,9 +7,11 @@ const isTextNode = (x) => _.isNumber(x) || _.isString(x);
 // always be a Map type instead of an Object
 const isAttributes = (x) => _.isPlainObject(x);
 
-const isTagString = (x) => /^:[a-z-]+$/.test(x);
+const tagStringRegexp = /^:([a-z][a-z0-9-]*)$/;
 
-const tagString2Name = (x) => x.match(/^:([a-z][a-z-]*)$/)[1];
+const isTagString = (x) => tagStringRegexp.test(x);
+
+const tagString2Name = (x) => x.match(tagStringRegexp)[1];
 
 const getTagName = (x) => tagString2Name(_.head(x));
 
@@ -29,9 +31,20 @@ const isElement = (x) => _.isArray(x)
       && isTagString(_.head(x))
       && _.every(getChildren(x), isNode);
 
-isNode = (x, i) => isTextNode(x)
-  || (isAttributes(x) && i === 1)
-  || isElement(x);
+const assertElement = (x, loc = 'root', idx = 0) => {
+  if (_.isString(x) || _.isNumber(x)) return;
+  assert(_.isArray(x),
+         `Expected a string/number/array but got "${x}"`
+         + ` at location: ${loc}[${idx}]`);
+  const ts = _.head(x);
+  assert(isTagString(ts),
+         `Invalid tag string "${ts}" at location: ${loc}[${idx}]`);
+  // TODO: if attributes are present, check those as well
+  loc = _.filter([loc, ts]).join('->');
+  _.each(getChildren(x), (y, i) => assertElement(y, `${loc}`, i + 1));
+};
+
+isNode = (x) => isTextNode(x) || isElement(x);
 
 const attrs2DOMMapping = {
   class: (el, val) => { el.className = val; },
@@ -60,7 +73,7 @@ function render(x, document) {
 }
 
 function dom(x, document) {
-  assert(isNode(x), 'Invalid O3 structure: ' + JSON.stringify(x));
+  assertElement(x);
   return render(x, document);
 }
 
