@@ -39,7 +39,7 @@ function inject(fn, ...args) {
         functionName(fn) || '<anonymous>');
     return context[param];
   });
-  return fn.apply(null, vals);
+  return fn(...vals);
 }
 
 const isTest = (arr) => _.isArray(arr)
