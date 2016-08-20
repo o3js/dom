@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "./runtests.sh"
+    "test": "./runtests.sh",
+    "postinstall": "npm link mocha-brackets"
   },
   "repository": {
     "type": "git",
@@ -24,7 +25,8 @@
     "eslint-plugin-jsx-a11y": "^2.1.0",
     "eslint-plugin-react": "^6.1.1",
     "jsdom": "^9.4.1",
-    "mocha": "^2.5.3"
+    "mocha": "^2.5.3",
+    "mocha-brackets": "file:../mocha-brackets"
   },
   "dependencies": {
     "lodash": "^4.15.0"
