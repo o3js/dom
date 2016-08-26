@@ -77,4 +77,11 @@ function dom(x, document) {
   return render(x, document);
 }
 
-module.exports = { dom };
+
+function attach(document, tag, x) {
+  document
+    .getElementById(tag.slice(1))
+    .appendChild(dom(x, document));
+}
+
+module.exports = { dom, attach };
