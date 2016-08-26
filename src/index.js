@@ -26,7 +26,8 @@ const getChildren = (x) => _.reduce(
    ? _.tail(_.tail(x))
    : _.tail(x)),
   (result, item) => {
-    if (_.isArray(item) && _.isArray(item[0])) {
+    if (_.isArray(item)
+        && (_.isArray(item[0]) || _.isEmpty(item))) {
       _.each(item, (i) => { result.push(i); });
     } else {
       result.push(item);
@@ -34,13 +35,21 @@ const getChildren = (x) => _.reduce(
     return result;
   }, []);
 
-let isNode = null;
+let isNode;
 
 const isElement = (x) => _.isArray(x)
       && isTagString(_.head(x))
-      && _.every(getChildren(x), isNode);
+        && _.every(getChildren(x), (c) => {
+          const r = isNode(c);
+          return r;
+        });
+
+isNode = (x) => isTextNode(x) || isElement(x) || x.subscribe;
 
 const assertElement = (x, loc = 'root', idx = 0) => {
+  if (x.subscribe) {
+    return;
+  }
   if (_.isString(x) || _.isNumber(x)) return;
   assert(_.isArray(x),
          `Expected a string/number/array but got "${x}"`
@@ -53,10 +62,10 @@ const assertElement = (x, loc = 'root', idx = 0) => {
   _.each(getChildren(x), (y, i) => assertElement(y, `${loc}`, i + 1));
 };
 
-isNode = (x) => isTextNode(x) || isElement(x);
 
 const attrs2DOMMapping = {
   class: (el, val) => { el.className = val; },
+  style: (el, val) => { el.style.cssText = val; },
 };
 
 function bindAttrs(el, attrs) {
@@ -66,7 +75,16 @@ function bindAttrs(el, attrs) {
   });
 }
 
-function render(x, document) {
+let setDynamic;
+const render = (x, document) => {
+  if (x.subscribe) {
+    let el;
+    x.subscribe((xPrime) => {
+      if (el) el = setDynamic(el, xPrime);
+      else el = render(xPrime, document);
+    });
+    return el;
+  }
   if (isTextNode(x)) return document.createTextNode(x);
   if (isElement(x)) {
     const el = document.createElement(getTagName(x));
@@ -77,13 +95,60 @@ function render(x, document) {
     return el;
   }
   return undefined;
-}
+};
+
+const getDocument = (el) => {
+  if (el.ownerDocument) return el.ownerDocument;
+  while (el.parentNode) {
+    el = el.parentNode;
+  }
+  return el;
+};
+
+const removeChildren = (el) => {
+  while (el.lastChild) {
+    el.removeChild(el.lastChild);
+  }
+};
+
+const replaceEl = (oldEl, newEl) => {
+  if (oldEl.parentNode) {
+    oldEl.parentNode.replaceChild(newEl, oldEl);
+  }
+  return newEl;
+};
+
+const setText = (el, text) => {
+  if (el.nodeType !== 3) {
+    // not already a text node, so replace with one
+    const newEl = getDocument(el).createTextNode(text);
+    el.parentNode.replaceChild(newEl, el);
+    return newEl;
+  }
+  removeChildren(el);
+  el.data = text;
+  return el;
+};
+
+const setStructure = (el, x) => {
+  removeChildren(el);
+  return replaceEl(el, render(x, getDocument(el)));
+};
+
+setDynamic = (el, x) => {
+  if (_.isUndefined(x) || _.isNull(x)) {
+    return setStructure(el, [':null']);
+  } if (_.isString(x) || _.isNumber(x)) {
+    return setText(el, x);
+  }
+  return setStructure(el, x);
+};
 
 function dom(x, document) {
   assertElement(x);
-  return render(x, document);
+  const r = render(x, document);
+  return r;
 }
-
 
 function attach(document, tag, x) {
   document
