@@ -61,10 +61,8 @@ const attrs2DOMMapping = {
 
 function bindAttrs(el, attrs) {
   _.each(attrs, (val, key) => {
-    if (!attrs2DOMMapping[key]) {
-      throw new Error('Unsupported attribute: ' + key + ', with value: ' + val);
-    }
-    attrs2DOMMapping[key](el, val);
+    const mapper = attrs2DOMMapping[key] || ((e, v) => { e[key] = v; });
+    mapper(el, val);
   });
 }
 
