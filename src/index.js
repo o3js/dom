@@ -21,9 +21,18 @@ const hasAttributes = (x) => x.length > 1
 const getAttributes = (x) => (hasAttributes(x)
                               && x[1]) || undefined;
 
-const getChildren = (x) => (hasAttributes(x)
-                            ? _.tail(_.tail(x))
-                            : _.tail(x));
+const getChildren = (x) => _.reduce(
+  (hasAttributes(x)
+   ? _.tail(_.tail(x))
+   : _.tail(x)),
+  (result, item) => {
+    if (_.isArray(item) && _.isArray(item[0])) {
+      _.each(item, (i) => { result.push(i); });
+    } else {
+      result.push(item);
+    }
+    return result;
+  }, []);
 
 let isNode = null;
 
