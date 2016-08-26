@@ -2,6 +2,7 @@ const assert = require('assert');
 const _ = require('lodash');
 
 const isTextNode = (x) => _.isNumber(x) || _.isString(x);
+const isSubscribable = (x) => x && x.subscribe;
 
 // TODO: this should be stricter... should attributes
 // always be a Map type instead of an Object
@@ -38,13 +39,10 @@ const getChildren = (x) => _.reduce(
 let isNode;
 
 const isElement = (x) => _.isArray(x)
-      && isTagString(_.head(x))
-        && _.every(getChildren(x), (c) => {
-          const r = isNode(c);
-          return r;
-        });
+        && isTagString(_.head(x))
+        && _.every(getChildren(x), isNode);
 
-isNode = (x) => isTextNode(x) || isElement(x) || x.subscribe;
+isNode = (x) => isTextNode(x) || isElement(x) || isSubscribable(x);
 
 const assertElement = (x, loc = 'root', idx = 0) => {
   if (x.subscribe) {
