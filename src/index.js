@@ -83,6 +83,7 @@ const render = (x, document) => {
       if (el) el = setDynamic(el, xPrime);
       else el = render(xPrime, document);
     });
+    el = el || render([':place-holder'], document);
     return el;
   }
   if (isTextNode(x)) return document.createTextNode(x);
@@ -136,9 +137,7 @@ const setStructure = (el, x) => {
 };
 
 setDynamic = (el, x) => {
-  if (_.isUndefined(x) || _.isNull(x)) {
-    return setStructure(el, [':null']);
-  } if (_.isString(x) || _.isNumber(x)) {
+  if (_.isString(x) || _.isNumber(x)) {
     return setText(el, x);
   }
   return setStructure(el, x);
