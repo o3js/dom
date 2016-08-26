@@ -45,10 +45,7 @@ const isElement = (x) => _.isArray(x)
 isNode = (x) => isTextNode(x) || isElement(x) || isSubscribable(x);
 
 const assertElement = (x, loc = 'root', idx = 0) => {
-  if (x.subscribe) {
-    return;
-  }
-  if (_.isString(x) || _.isNumber(x)) return;
+  if (isTextNode(x) || isSubscribable(x)) return;
   assert(_.isArray(x),
          `Expected a string/number/array but got "${x}"`
          + ` at location: ${loc}[${idx}]`);
