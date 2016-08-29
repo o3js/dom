@@ -1,4 +1,4 @@
-const { dom } = require('../src');
+const dom = require('../src').render;
 const assert = require('chai').assert;
 
 module.exports = [

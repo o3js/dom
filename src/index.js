@@ -132,22 +132,16 @@ const setStructure = (el, x) => {
 };
 
 setDynamic = (el, x) => {
+  assertElement(x);
   if (_.isString(x) || _.isNumber(x)) {
     return setText(el, x);
   }
   return setStructure(el, x);
 };
 
-function dom(x, document) {
-  assertElement(x);
-  const r = render(x, document);
-  return r;
-}
-
-function attach(document, tag, x) {
-  document
-    .getElementById(tag.slice(1))
-    .appendChild(dom(x, document));
-}
-
-module.exports = { dom, attach };
+module.exports = {
+  render: (document, x) => {
+    assertElement(x);
+    return render(x, document);
+  },
+};
