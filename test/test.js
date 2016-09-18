@@ -76,15 +76,71 @@ module.exports = [
 
     ['"class"',
      ['An empty string', (document) => {
-       assert(
+       assert.equal(
          dom([':span', { class: '' }], document)
-           .className === '');
+           .className, '');
      }],
      ['A non-empty string', (document) => {
-       assert(
+       assert.equal(
          dom([':span', { class: 'myclass' }], document)
+           .className, 'myclass');
+     }],
+    ],
+
+   ],
+
+   ['Class shorthand',
+    ['Single class',
+     (document) => {
+       assert(
+         dom([':span.myclass'], document)
            .className === 'myclass');
      }],
+
+    ['Multiple classes',
+     (document) => {
+       assert(
+         dom([':span.myclass.other-class9'], document)
+           .className === 'myclass other-class9');
+     }],
+
+    ['Mixed modes',
+     (document) => {
+       assert.equal(
+         dom([':span.1.2', {
+           class: '2 3',
+         }], document)
+           .className, '1 2 2 3');
+     }],
+   ],
+
+   ['ID shorthand',
+    ['Single ID',
+     (document) => {
+       assert.equal(
+         dom([':span#myid'], document)
+           .id, 'myid');
+     },
+    ],
+
+    // TODO: should this actually throw?
+    ['Multiple IDs',
+     (document) => {
+       assert.equal(
+         dom([':span#myid#nextid'], document)
+           .id, 'nextid');
+     },
+    ],
+
+    // TODO: should this actually throw?
+    ['Mixed modes',
+     (document) => {
+       assert.equal(
+         dom([':span#myid', {
+           id: 'otherid',
+         }], document)
+           .id, 'otherid');
+     },
     ],
 
    ]]];

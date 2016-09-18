@@ -7,7 +7,7 @@ const isTextNode = (x) => _.isNumber(x) || _.isString(x);
 // always be a Map type instead of an Object
 const isAttributes = (x) => _.isPlainObject(x);
 
-const tagStringRegexp = /^:([a-z][a-z0-9-]*)$/;
+const tagStringRegexp = /^:([a-z][a-z0-9-]*)(([\.#][a-z0-9-]+)*)$/;
 
 const isTagString = (x) => tagStringRegexp.test(x);
 
@@ -20,6 +20,16 @@ const hasAttributes = (x) => x.length > 1
 
 const getAttributes = (x) => (hasAttributes(x)
                               && x[1]) || undefined;
+
+const getClasses = (x) => _.map(
+  _.head(x).match(/\.[a-z0-9-:]+/g),
+  (y) => y.slice(1));
+
+const getId = (x) => _.trimStart(
+  _.last(
+    _.head(x)
+      .match(/#[a-z0-9-:]+/g)),
+  '#');
 
 const getChildren = (x) => (hasAttributes(x)
                             ? _.tail(_.tail(x))
@@ -47,7 +57,10 @@ const assertElement = (x, loc = 'root', idx = 0) => {
 isNode = (x) => isTextNode(x) || isElement(x);
 
 const attrs2DOMMapping = {
-  class: (el, val) => { el.className = val; },
+  class: (el, val) => {
+    el.className = _.filter([el.className, val]).join(' ');
+  },
+  id: (el, val) => { el.id = val; },
 };
 
 function bindAttrs(el, attrs) {
@@ -63,6 +76,8 @@ function render(x, document) {
   if (isTextNode(x)) return document.createTextNode(x);
   if (isElement(x)) {
     const el = document.createElement(getTagName(x));
+    el.className = getClasses(x).join(' ');
+    el.id = getId(x);
     const attrs = getAttributes(x);
     bindAttrs(el, attrs);
     const children = getChildren(x);
