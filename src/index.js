@@ -2,6 +2,7 @@ const assert = require('assert');
 const _ = require('lodash');
 
 const isTextNode = (x) => _.isNumber(x) || _.isString(x);
+const isSubscribable = (x) => x && x.subscribe;
 
 // TODO: this should be stricter... should attributes
 // always be a Map type instead of an Object
@@ -31,18 +32,30 @@ const getId = (x) => _.trimStart(
       .match(/#[a-z0-9-:]+/g)),
   '#');
 
-const getChildren = (x) => (hasAttributes(x)
-                            ? _.tail(_.tail(x))
-                            : _.tail(x));
+const getChildren = (x) => _.reduce(
+  (hasAttributes(x)
+   ? _.tail(_.tail(x))
+   : _.tail(x)),
+  (result, item) => {
+    if (_.isArray(item)
+        && (_.isArray(item[0]) || _.isEmpty(item))) {
+      _.each(item, (i) => { result.push(i); });
+    } else {
+      result.push(item);
+    }
+    return result;
+  }, []);
 
-let isNode = null;
+let isNode;
 
 const isElement = (x) => _.isArray(x)
-      && isTagString(_.head(x))
-      && _.every(getChildren(x), isNode);
+        && isTagString(_.head(x))
+        && _.every(getChildren(x), isNode);
+
+isNode = (x) => isTextNode(x) || isElement(x) || isSubscribable(x);
 
 const assertElement = (x, loc = 'root', idx = 0) => {
-  if (_.isString(x) || _.isNumber(x)) return;
+  if (isTextNode(x) || isSubscribable(x)) return;
   assert(_.isArray(x),
          `Expected a string/number/array but got "${x}"`
          + ` at location: ${loc}[${idx}]`);
@@ -54,25 +67,33 @@ const assertElement = (x, loc = 'root', idx = 0) => {
   _.each(getChildren(x), (y, i) => assertElement(y, `${loc}`, i + 1));
 };
 
-isNode = (x) => isTextNode(x) || isElement(x);
 
 const attrs2DOMMapping = {
   class: (el, val) => {
     el.className = _.filter([el.className, val]).join(' ');
   },
   id: (el, val) => { el.id = val; },
+  style: (el, val) => { el.style.cssText = val; },
 };
 
 function bindAttrs(el, attrs) {
   _.each(attrs, (val, key) => {
-    if (!attrs2DOMMapping[key]) {
-      throw new Error('Unsupported attribute: ' + key + ', with value: ' + val);
-    }
-    attrs2DOMMapping[key](el, val);
+    const mapper = attrs2DOMMapping[key] || ((e, v) => { e[key] = v; });
+    mapper(el, val);
   });
 }
 
-function render(x, document) {
+let setDynamic;
+const render = (x, document) => {
+  if (x.subscribe) {
+    let el;
+    x.subscribe((xPrime) => {
+      if (el) el = setDynamic(el, xPrime);
+      else el = render(xPrime, document);
+    });
+    el = el || render([':place-holder'], document);
+    return el;
+  }
   if (isTextNode(x)) return document.createTextNode(x);
   if (isElement(x)) {
     const el = document.createElement(getTagName(x));
@@ -85,11 +106,57 @@ function render(x, document) {
     return el;
   }
   return undefined;
-}
+};
 
-function dom(x, document) {
+const getDocument = (el) => {
+  if (el.ownerDocument) return el.ownerDocument;
+  while (el.parentNode) {
+    el = el.parentNode;
+  }
+  return el;
+};
+
+const removeChildren = (el) => {
+  while (el.lastChild) {
+    el.removeChild(el.lastChild);
+  }
+};
+
+const replaceEl = (oldEl, newEl) => {
+  if (oldEl.parentNode) {
+    oldEl.parentNode.replaceChild(newEl, oldEl);
+  }
+  return newEl;
+};
+
+const setText = (el, text) => {
+  if (el.nodeType !== 3) {
+    // not already a text node, so replace with one
+    const newEl = getDocument(el).createTextNode(text);
+    el.parentNode.replaceChild(newEl, el);
+    return newEl;
+  }
+  removeChildren(el);
+  el.data = text;
+  return el;
+};
+
+const setStructure = (el, x) => {
+  removeChildren(el);
+  return replaceEl(el, render(x, getDocument(el)));
+};
+
+setDynamic = (el, x) => {
   assertElement(x);
-  return render(x, document);
-}
+  if (_.isString(x) || _.isNumber(x)) {
+    return setText(el, x);
+  }
+  return setStructure(el, x);
+};
 
-module.exports = { dom };
+module.exports = {
+  render: (x, document) => {
+    assertElement(x);
+    return render(x, document);
+  },
+};
