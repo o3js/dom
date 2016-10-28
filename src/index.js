@@ -20,7 +20,10 @@ const hasAttributes = (x) => x.length > 1
       && isAttributes(x[1]);
 
 const getAttributes = (x) => (hasAttributes(x)
-                              && x[1]) || undefined;
+                              && _.omit(x[1], ['mount'])) || undefined;
+
+const getMountFn = (x) => (hasAttributes(x)
+                           && x[1].mount) || _.noop;
 
 const getClasses = (x) => _.map(
   _.head(x).match(/\.[a-z0-9-:]+/g),
@@ -103,6 +106,7 @@ const render = (x, document) => {
     bindAttrs(el, attrs);
     const children = getChildren(x);
     _.each(children, (c) => el.appendChild(render(c, document)));
+    getMountFn(x)(el);
     return el;
   }
   return undefined;

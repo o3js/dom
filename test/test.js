@@ -140,5 +140,16 @@ module.exports = [
         }], document)
           .id, 'otherid');
     },
-   ]]];
+   ]],
+
+  ['Mount',
+   ['Basics', (document) => {
+     dom([':div', {
+       mount: (el) => {
+         assert.equal(el.tagName, 'DIV');
+       },
+     }], document);
+   }]],
+
+];
 
