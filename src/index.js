@@ -6,7 +6,7 @@ const isSubscribable = (x) => x && x.subscribe;
 
 // TODO: this should be stricter... should attributes
 // always be a Map type instead of an Object
-const isAttributes = (x) => _.isPlainObject(x);
+const isAttributes = (x) => _.isPlainObject(x) && !x.subscribe;
 
 const tagStringRegexp = /^:([a-z][a-z0-9-]*)(([\.#][a-z0-9-]+)*)$/;
 
