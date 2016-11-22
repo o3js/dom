@@ -73,7 +73,7 @@ const assertElement = (x, loc = 'root', idx = 0) => {
 
 const attrs2DOMMapping = {
   class: (el, val) => {
-    el.className = _.filter([el.className, val]).join(' ');
+    el.className = val;
   },
   id: (el, val) => { el.id = val; },
   style: (el, val) => { el.style.cssText = val; },
@@ -82,7 +82,13 @@ const attrs2DOMMapping = {
 function bindAttrs(el, attrs) {
   _.each(attrs, (val, key) => {
     const mapper = attrs2DOMMapping[key] || ((e, v) => { e[key] = v; });
-    mapper(el, val);
+    if (val.subscribe) {
+      val.subscribe((vPrime) => {
+        mapper(el, vPrime);
+      });
+    } else {
+      mapper(el, val);
+    }
   });
 }
 

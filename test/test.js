@@ -103,13 +103,13 @@ module.exports = [
           .className === 'myclass other-class9');
     }],
 
-   ['Mixed modes',
+   ['Mixed modes result in overridden className',
     (document) => {
       assert.equal(
         dom([':span.1.2', {
           class: '2 3',
         }], document)
-          .className, '1 2 2 3');
+          .className, '2 3');
     }],
   ],
 
