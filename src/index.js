@@ -164,9 +164,38 @@ setDynamic = (el, x) => {
   return setStructure(el, x);
 };
 
+function renderStatic(arr, indent) {
+  if (_.isArray(arr[0])) {
+    return _.map(arr, item => renderStatic(item, indent)).join('\n');
+  }
+  if (_.isString(arr) || _.isNumber(arr)) {
+    return [_.times(indent, () => '  ').join(''), arr].join('');
+  }
+  if (_.isPlainObject(arr)) {
+    return null;
+  }
+  const attrs = arr.length > 1 && _.isPlainObject(arr[1]) && arr[1];
+  const tagName = arr[0].slice(1);
+  return _.filter([
+    [_.times(indent, () => '  ').join(''),
+     '<',
+     tagName,
+     _.map(attrs, (v, k) => ` ${k}="${v}"`).join(''),
+     '>',
+    ].join(''),
+    arr.length > 1
+      ? _.filter(_.map(_.tail(arr), (item) => renderStatic(item, indent + 1))).join('\n')
+      : null,
+    _.find(['input'], (i) => i === tagName)
+      ? null
+      : [_.times(indent, () => '  ').join(''), '</', tagName, '>'].join(''),
+  ]).join('\n');
+}
+
 module.exports = {
   render: (x, document) => {
     assertElement(x);
     return render(x, document);
   },
+  renderStatic: (x) => renderStatic(x, 0),
 };
