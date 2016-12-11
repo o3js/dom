@@ -25,7 +25,7 @@
     "eslint-plugin-react": "^6.1.1",
     "jsdom": "^9.4.1",
     "mocha": "^2.5.3",
-    "mocha-brackets": "*"
+    "mocha-brackets": "0.0.2"
   },
   "dependencies": {
     "lodash": "^4.15.0"

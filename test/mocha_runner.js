@@ -6,4 +6,7 @@ const mochaBrackets = require('mocha-brackets');
 const document = () => jsdom('<div id="main"></div>');
 const el = () => document().getElementById('main');
 
-mochaBrackets.load({ document, el }, require('./test'));
+mochaBrackets.load({ document, el }, [
+  require('./test'),
+  require('./z_dom'),
+]);

@@ -92,11 +92,22 @@ function bindAttrs(el, attrs) {
   });
 }
 
+function triggerRelease(el) {
+  if (!el) return;
+  _.each(el.children, triggerRelease);
+  if (el.__onRelease) {
+    _.each(el.__onRelease, cb => {
+      cb();
+    });
+  }
+}
+
 let setDynamic;
 const render = (x, document) => {
   if (x.subscribe) {
     let el;
     x.subscribe((xPrime) => {
+      triggerRelease(el);
       if (el) el = setDynamic(el, xPrime);
       else el = render(xPrime, document);
     });
@@ -112,7 +123,10 @@ const render = (x, document) => {
     bindAttrs(el, attrs);
     const children = getChildren(x);
     _.each(children, (c) => el.appendChild(render(c, document)));
-    getMountFn(x)(el);
+    getMountFn(x)(el, (cb) => {
+      if (!el.__onRelease) el.__onRelease = [];
+      el.__onRelease.push(cb);
+    });
     return el;
   }
   return undefined;
@@ -184,7 +198,8 @@ function renderStatic(arr, indent) {
      '>',
     ].join(''),
     arr.length > 1
-      ? _.filter(_.map(_.tail(arr), (item) => renderStatic(item, indent + 1))).join('\n')
+      ? _.filter(
+        _.map(_.tail(arr), (item) => renderStatic(item, indent + 1))).join('\n')
       : null,
     _.find(['input'], (i) => i === tagName)
       ? null
