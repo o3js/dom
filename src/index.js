@@ -179,6 +179,9 @@ setDynamic = (el, x) => {
 };
 
 function renderStatic(arr, indent) {
+  if (!arr) {
+    return '';
+  }
   if (_.isArray(arr[0])) {
     return _.map(arr, item => renderStatic(item, indent)).join('\n');
   }
