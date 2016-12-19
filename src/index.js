@@ -92,7 +92,7 @@ function bindAttrs(el, attrs) {
     if (val.subscribe) {
       val.subscribe((vPrime) => {
         mapper(el, vPrime);
-      });
+      }, _.noop, _.noop, { onHalt: _.noop });
     } else {
       mapper(el, val);
     }
@@ -117,7 +117,7 @@ const render = (x, document) => {
       triggerRelease(el);
       if (el) el = setDynamic(el, xPrime);
       else el = render(xPrime, document);
-    });
+    }, _.noop, _.noop, { onHalt: _.noop });
     el = el || render([':place-holder'], document);
     return el;
   }
