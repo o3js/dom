@@ -70,13 +70,20 @@ const assertElement = (x, loc = 'root', idx = 0) => {
   _.each(getChildren(x), (y, i) => assertElement(y, `${loc}`, i + 1));
 };
 
+function elsetattr(key) {
+  return (el, val) => el.setAttribute(key, val);
+}
 
 const attrs2DOMMapping = {
-  class: (el, val) => {
+  'class': (el, val) => {
     el.className = val;
   },
-  id: (el, val) => { el.id = val; },
-  style: (el, val) => { el.style.cssText = val; },
+  'id': (el, val) => { el.id = val; },
+  'style': (el, val) => { el.style.cssText = val; },
+  'for': elsetattr('for'),
+  'autofocus': elsetattr('autofocus'),
+  'autocomplete': elsetattr('autocomplete'),
+  'autocorrect': elsetattr('autocorrect'),
 };
 
 function bindAttrs(el, attrs) {
