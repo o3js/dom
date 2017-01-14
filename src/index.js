@@ -22,8 +22,12 @@ const hasAttributes = (x) => x.length > 1
 const getAttributes = (x) => (hasAttributes(x)
                               && _.omit(x[1], ['mount'])) || undefined;
 
-const getMountFn = (x) => (hasAttributes(x)
-                           && x[1].mount) || _.noop;
+const getMountFns = (x) => (
+  hasAttributes(x)
+    && !_.isUndefined(x[1].mount)
+    && (_.isArray(x[1].mount)
+        ? x[1].mount
+        : [x[1].mount])) || [_.noop];
 
 const getClasses = (x) => _.map(
   _.head(x).match(/\.[a-z0-9-:]+/g),
@@ -83,6 +87,8 @@ const attrs2DOMMapping = {
   'for': elsetattr('for'),
   'autofocus': elsetattr('autofocus'),
   'autocomplete': elsetattr('autocomplete'),
+  'maxlength': elsetattr('maxlength'),
+  'minlength': elsetattr('minlength'),
   'autocorrect': elsetattr('autocorrect'),
 };
 
@@ -130,9 +136,11 @@ const render = (x, document) => {
     bindAttrs(el, attrs);
     const children = getChildren(x);
     _.each(children, (c) => el.appendChild(render(c, document)));
-    getMountFn(x)(el, (cb) => {
-      if (!el.__onRelease) el.__onRelease = [];
-      el.__onRelease.push(cb);
+    _.each(getMountFns(x), fn => {
+      return fn(el, (cb) => {
+        if (!el.__onRelease) el.__onRelease = [];
+        el.__onRelease.push(cb);
+      });
     });
     return el;
   }
