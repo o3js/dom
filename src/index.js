@@ -3,10 +3,11 @@ const _ = require('lodash');
 
 const isTextNode = (x) => _.isNumber(x) || _.isString(x);
 const isSubscribable = (x) => x && x.subscribe;
+const isThenable = (x) => x && x.then;
 
 // TODO: this should be stricter... should attributes
 // always be a Map type instead of an Object
-const isAttributes = (x) => _.isPlainObject(x) && !x.subscribe;
+const isAttributes = (x) => _.isPlainObject(x) && !x.subscribe && !x.then;
 
 const tagStringRegexp = /^:([a-z][a-z0-9-]*)(([\.#][a-z0-9-]+)*)$/;
 
@@ -59,10 +60,10 @@ const isElement = (x) => _.isArray(x)
         && isTagString(_.head(x))
         && _.every(getChildren(x), isNode);
 
-isNode = (x) => isTextNode(x) || isElement(x) || isSubscribable(x);
+isNode = (x) => isTextNode(x) || isElement(x) || isSubscribable(x) || isThenable(x);
 
 const assertElement = (x, loc = 'root', idx = 0) => {
-  if (isTextNode(x) || isSubscribable(x)) return;
+  if (isTextNode(x) || isSubscribable(x) || isThenable(x)) return;
   assert(_.isArray(x),
          `Expected a string/number/array but got "${x}"`
          + ` at location: ${loc}[${idx}]`);
@@ -117,7 +118,16 @@ function triggerRelease(el) {
 
 let setDynamic;
 const render = (x, document) => {
-  if (x.subscribe) {
+  if (isThenable(x)) {
+    let el;
+    x.then(xPrime => {
+      if (el) el = setDynamic(el, xPrime);
+      else el = render(xPrime, document);
+    });
+    el = el || render([':place-holder'], document);
+    return el;
+  }
+  if (isSubscribable(x)) {
     let el;
     x.subscribe((xPrime) => {
       triggerRelease(el);
